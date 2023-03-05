@@ -8,6 +8,7 @@ export const RickApp = () => {
     <AuthProvaider>
       <ApiProvider>
       <AppRoute/>
+      
       </ApiProvider>
     </AuthProvaider>
   )

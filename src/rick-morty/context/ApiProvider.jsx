@@ -1,36 +1,60 @@
-import React, { useReducer } from 'react'
-import { useFetch } from '../../hooks/useFetch'
-import { types } from '../types/types'
-import { ApiContext } from './ApiContext'
-import { ApiReducer } from './ApiReducer'
+import React, { useReducer } from 'react';
+import { useFetch } from '../../hooks/useFetch';
+import { types } from '../types/types';
+import { ApiContext } from './ApiContext';
+import { ApiReducer } from './ApiReducer';
 
-const initialState ={
-    characters:[]
-}
-export const ApiProvider = ({children}) => {
+export const ApiProvider = ({ children }) => {
+  const [apiState, dispatch] = useReducer(ApiReducer, {
+    characters: [],
+    character: null,
+  });
 
-    const [apiState, dispatch] = useReducer(ApiReducer,{})
+  const { data: allCharacters, isLoading: isAllCharactersLoading } =
+    useFetch('https://rickandmortyapi.com/api/character');
 
-    const {data,isLoading} = useFetch('https://rickandmortyapi.com/api/character')
-    if( isLoading) return
-    const {results} = data
-    const getAllCharacter = () =>{
-        const action ={
-            type: types.getAllCharacter,
-            payload:results
-        }
-        dispatch(action)
+  const getAllCharacter = () => {
+    if (!isAllCharactersLoading) {
+      const action = {
+        type: types.getAllCharacter,
+        payload: allCharacters.results,
+      };
+      dispatch(action);
     }
-    
-    
+  };
 
-    return (
-    <ApiContext.Provider value={{
+  const getCharacterById = async (id) => {
+    try {
+      const response = await fetch(
+        `https://rickandmortyapi.com/api/character/${id}`
+      );
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+
+      const action = {
+        type: types.getCharacterByID,
+        payload: data,
+      };
+      dispatch(action);
+    } catch (error) {
+      console.log('Error:', error);
+      // Manejar errores aquí
+    }
+  };
+
+  return (
+    <ApiContext.Provider
+      value={{
         ...apiState,
-        getAllCharacter:getAllCharacter,
-        characters: apiState.characters
-    }}>
-        {children}
+        getAllCharacter,
+        getCharacterById,
+        characters: apiState.characters,
+        character: apiState.character,
+      }}
+    >
+      {children}
     </ApiContext.Provider>
-  )
-}
+  );
+};
