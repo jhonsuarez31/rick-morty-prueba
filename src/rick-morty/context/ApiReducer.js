@@ -19,6 +19,13 @@ export const ApiReducer = (state={}, action) => {
         loading: true,
         character: action.payload
       }
+
+      case types.addFavorite:
+        return{
+          ...state,
+          loading: true,
+          favorite: action.payload
+        }  
   
     default:
       return state
